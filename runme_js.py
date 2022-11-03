@@ -135,29 +135,33 @@ def display_figure_data(clickData, figureData):
     return json.dumps(figureData, indent=2)
 
 
+app.clientside_callback(
+    """
+    function(clickData,figureData) {
+        console.log("click");
+        if (clickData === undefined){
+            return window.dash_clientside.no_update;
+        }
 
+        if (figureData['data'].length == 0){
+            return window.dash_clientside.no_update;
+        }
+            
+        point = clickData['points'][0];
 
-
-@app.callback(
-        Output(GRAPH_ID, 'extendData'),
-        Input(GRAPH_ID, 'clickData'),
-        State(GRAPH_ID , 'figure')
-    )
-def highlight_click(clickData,figureData):
-    if not clickData:
-        raise PreventUpdate
-    if len(figureData['data']) == 0:
-        raise PreventUpdate    
-    point = clickData['points'][0]
-
-    hilight = {
-        'x' : [[point['x']]],
-        'y' : [[point['y']]],
-        'marker.color' :[[point['marker.color']]]
+        hilight = {
+            'x' : [[point['x']]],
+            'y' : [[point['y']]],
+            'marker.color' :[[point['marker.color']]]
+        }
+        last_trace_index = figureData['data'].length-1; //assumes always the last trace
+        return [hilight,[last_trace_index],1];
     }
-    last_trace_index = len(figureData['data'])-1 #assumes always the last trace
-    return [hilight,[last_trace_index],1]
-
+    """,
+    Output(GRAPH_ID, 'extendData'),
+    Input(GRAPH_ID, 'clickData'),
+    State(GRAPH_ID , 'figure')
+)
 
 
 @app.callback(Output(GRAPH_ID, "clickData"),
